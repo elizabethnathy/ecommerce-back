@@ -1,0 +1,185 @@
+{
+    "info": {
+        "name": "Ecommerce",
+        "_postman_id": "ecommerce-reto-v2",
+        "description": "API REST de e-commerce. Productos desde dummyjson.com, carrito persistente en MySQL, auth con Sanctum.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {"key": "base_url", "value": "http://localhost:8000/api", "type": "string"},
+        {"key": "token",    "value": "",                          "type": "string"}
+    ],
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Register",
+                    "event": [{
+                        "listen": "test",
+                        "script": {"exec": [
+                            "const r = pm.response.json();",
+                            "if (r.data?.token) pm.collectionVariables.set('token', r.data.token);"
+                        ], "type": "text/javascript"}
+                    }],
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Accept", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"nombre\":\"Alice Garcia\",\"email\":\"alice@example.com\",\"password\":\"password123\",\"password_confirmation\":\"password123\"}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {"raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth","register"]}
+                    }
+                },
+                {
+                    "name": "Login",
+                    "event": [{
+                        "listen": "test",
+                        "script": {"exec": [
+                            "const r = pm.response.json();",
+                            "if (r.data?.token) pm.collectionVariables.set('token', r.data.token);"
+                        ], "type": "text/javascript"}
+                    }],
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Accept", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"email\":\"alice@example.com\",\"password\":\"password123\"}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {"raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth","login"]}
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Accept",        "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "url": {"raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth","logout"]}
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Productos (públicos)",
+            "item": [
+                {
+                    "name": "Listar — default",
+                    "request": {
+                        "method": "GET",
+                        "header": [{"key": "Accept", "value": "application/json"}],
+                        "url": {"raw": "{{base_url}}/products", "host": ["{{base_url}}"], "path": ["products"]}
+                    }
+                },
+                {
+                    "name": "Listar — precio desc, página 2",
+                    "request": {
+                        "method": "GET",
+                        "header": [{"key": "Accept", "value": "application/json"}],
+                        "url": {
+                            "raw": "{{base_url}}/products?sort_price=desc&per_page=5&page=2",
+                            "host": ["{{base_url}}"], "path": ["products"],
+                            "query": [
+                                {"key": "sort_price", "value": "desc"},
+                                {"key": "per_page",   "value": "5"},
+                                {"key": "page",       "value": "2"}
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Obtener por ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [{"key": "Accept", "value": "application/json"}],
+                        "url": {"raw": "{{base_url}}/products/1", "host": ["{{base_url}}"], "path": ["products","1"]}
+                    }
+                },
+                {
+                    "name": "Obtener ID inexistente (404)",
+                    "request": {
+                        "method": "GET",
+                        "header": [{"key": "Accept", "value": "application/json"}],
+                        "url": {"raw": "{{base_url}}/products/99999", "host": ["{{base_url}}"], "path": ["products","99999"]}
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Carrito (requiere token)",
+            "item": [
+                {
+                    "name": "Obtener / Crear carrito",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {"key": "Accept",        "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "url": {"raw": "{{base_url}}/cart", "host": ["{{base_url}}"], "path": ["cart"]}
+                    }
+                },
+                {
+                    "name": "Agregar producto",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Accept",        "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"product_id\": 1, \"quantity\": 2}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {"raw": "{{base_url}}/cart/items", "host": ["{{base_url}}"], "path": ["cart","items"]}
+                    }
+                },
+                {
+                    "name": "Agregar mismo producto (incrementa cantidad)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Accept",        "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"product_id\": 1, \"quantity\": 3}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {"raw": "{{base_url}}/cart/items", "host": ["{{base_url}}"], "path": ["cart","items"]}
+                    }
+                },
+                {
+                    "name": "Eliminar producto del carrito",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {"key": "Accept",        "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "url": {"raw": "{{base_url}}/cart/items/1", "host": ["{{base_url}}"], "path": ["cart","items","1"]}
+                    }
+                },
+                {
+                    "name": "Confirmar compra (checkout)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Accept",        "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "url": {"raw": "{{base_url}}/cart/checkout", "host": ["{{base_url}}"], "path": ["cart","checkout"]}
+                    }
+                }
+            ]
+        }
+    ]
+}
